@@ -20,7 +20,7 @@ interface VinRecord {
 
 interface VinHistoryListProps {
   refreshFlag: boolean;
-  newestVinId?: string;
+  newestVinId?: string | null;
 }
 
 export function VinHistoryList({ refreshFlag, newestVinId }: VinHistoryListProps) {
