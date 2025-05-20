@@ -18,7 +18,12 @@ interface VinRecord {
   created_at: string;
 }
 
-export function VinHistoryList({ refreshFlag, newestVinId }) {
+interface VinHistoryListProps {
+  refreshFlag: boolean;
+  newestVinId?: string;
+}
+
+export function VinHistoryList({ refreshFlag, newestVinId }: VinHistoryListProps) {
   const [records, setRecords] = useState<VinRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
