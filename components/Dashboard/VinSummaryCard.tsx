@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Copy, Check } from 'lucide-react';
 
 interface VehicleSummaryModalProps {
   open: boolean;
@@ -29,7 +30,15 @@ export function VehicleSummaryModal({ open, onOpenChange, title, markdown }: Veh
         </DialogHeader>
         <div className="flex justify-end mb-2">
           <Button size="sm" onClick={handleCopy}>
-            {copied ? 'Copied!' : 'Copy Markdown'}
+            {copied ? (
+              <span className="flex items-center gap-2">
+                <Check className="h-4 w-4" /> Copied!
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Copy className="h-4 w-4" /> Copy Markdown
+              </span>
+            )}
           </Button>
         </div>
         <div className="prose max-w-none overflow-y-auto" style={{ maxHeight: '70vh' }}>

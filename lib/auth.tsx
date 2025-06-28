@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 
 interface User {
   email: string;
+  user_status?: 'active' | 'deactivated';
 }
 
 interface AuthContextType {
@@ -38,6 +39,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (token && userStr) {
         try {
           const userData = JSON.parse(userStr);
+          
+          // Check if user is deactivated
+          if (userData.user_status === 'deactivated') {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            router.push('/blocked');
+            return;
+          }
+          
           setUser(userData);
         } catch (e) {
           // Invalid user data in localStorage
@@ -51,9 +62,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
     
     checkAuth();
-  }, []);
+  }, [router]);
 
   const login = (token: string, refreshToken: string, userData: User) => {
+    // Check if user is deactivated during login
+    if (userData.user_status === 'deactivated') {
+      router.push('/blocked');
+      return;
+    }
+    
     localStorage.setItem('access_token', token);
     localStorage.setItem('refresh_token', refreshToken);
     localStorage.setItem('user', JSON.stringify(userData));

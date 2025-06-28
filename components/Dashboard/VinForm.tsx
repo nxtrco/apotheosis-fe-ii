@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Sparkles } from 'lucide-react';
 import { vinApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { VehicleSummaryModal } from '@/components/Dashboard/VehicleSummaryModal';
@@ -133,7 +134,7 @@ export function VinForm({ onSuccess }: VinFormProps) {
       <CardHeader>
         <CardTitle>Vehicle Lookup</CardTitle>
         <CardDescription>
-          Enter a VIN number and current mileage to get a detailed vehicle report.
+          Enter a VIN number and current mileage to get a unique detailed vehicle listing.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -145,7 +146,7 @@ export function VinForm({ onSuccess }: VinFormProps) {
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="vin">VIN Number</Label>
+            <Label htmlFor="vin">VIN</Label>
             <Input
               id="vin"
               name="vin"
@@ -158,9 +159,9 @@ export function VinForm({ onSuccess }: VinFormProps) {
             {errors.vin && (
               <p className="text-destructive text-xs mt-1">{errors.vin}</p>
             )}
-            <p className="text-xs text-muted-foreground">
+            {/* <p className="text-xs text-muted-foreground">
               The Vehicle Identification Number is a 17-character code unique to each vehicle.
-            </p>
+            </p> */}
           </div>
           
           <div className="space-y-2">
@@ -179,7 +180,13 @@ export function VinForm({ onSuccess }: VinFormProps) {
           </div>
           
           <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? 'Looking up information...' : 'Get Vehicle Report'}
+            {isLoading ? (
+              'Looking up information...'
+            ) : (
+              <span className="flex items-center gap-2">
+                Get description now <Sparkles className="h-4 w-4" />
+              </span>
+            )}
           </Button>
         </form>
         

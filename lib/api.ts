@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://apotheosis-be.onrender.com/api';
+const local = 'http://localhost:8000/api';
+const prod = 'https://apotheosis-be.onrender.com/api'
+
+const API_URL = local;  
 
 const api = axios.create({
   baseURL: API_URL,
@@ -86,6 +89,15 @@ export const vinApi = {
   },
   getVinRecords: (page: number = 1, limit: number = 10) => {
     return api.get(`/vin-records?page=${page}&limit=${limit}`);
+  },
+};
+
+export const adminApi = {
+  getUsers: () => {
+    return api.get('/admin/users');
+  },
+  updateUserStatus: (userId: string, status: 'active' | 'deactivated') => {
+    return api.put(`/admin/users/${userId}/status`, { account_status: status });
   },
 };
 

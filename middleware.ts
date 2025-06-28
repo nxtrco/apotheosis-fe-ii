@@ -7,10 +7,15 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Protected routes
-  const protectedRoutes = ['/dashboard'];
+  const protectedRoutes = ['/dashboard', '/admin', '/settings'];
   
   // Auth routes (login/signup) - redirect to dashboard if already logged in
   const authRoutes = ['/signin', '/signup'];
+  
+  
+  // Public routes that don't require authentication
+
+  const publicRoutes = ['/blocked'];
   
   // Check if the path is a protected route
   const isProtectedRoute = protectedRoutes.some(route => 
@@ -22,8 +27,13 @@ export function middleware(request: NextRequest) {
     pathname === route
   );
   
+  // Check if the path is a public route
+  const isPublicRoute = publicRoutes.some(route => 
+    pathname === route
+  );
+  
   // If trying to access a protected route without a token
-  if (isProtectedRoute && !token) {
+  if (isProtectedRoute && !token && !isPublicRoute) {
     const url = new URL('/signin', request.url);
     url.searchParams.set('from', pathname);
     return NextResponse.redirect(url);
@@ -39,5 +49,5 @@ export function middleware(request: NextRequest) {
 
 // See "Matching Paths" below to learn more
 export const config = {
-  matcher: ['/dashboard/:path*', '/signin', '/signup'],
+  matcher: ['/dashboard/:path*', '/admin/:path*', '/settings/:path*', '/signin', '/signup', '/blocked'],
 };
