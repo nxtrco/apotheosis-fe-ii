@@ -87,8 +87,26 @@ export function VinForm({ onSuccess }: VinFormProps) {
         formData.vin, 
         parseInt(formData.mileage)
       );
-      const data = response.data.data;
       
+      // Handle 202 status code response with task_id
+      if (response.status === 202 || response.data.status_code === 202) {
+        const data = response.data.data;
+        
+        if (data && data.task_id) {
+          // Clear the form and errors
+          setFormData({ vin: '', mileage: '' });
+          setErrors({});
+
+          toast({
+            title: 'Success',
+            description: 'Request submitted successfully.',
+          });
+          return;
+        }
+      }
+      
+      // Handle legacy response structure (if still needed)
+      const data = response.data.data;
       if (data && (data.gpt_description || data.summary)) {
         // After successful lookup, fetch the latest VIN records to get the new record's ID
         const recordsResponse = await vinApi.getVinRecords(1, 1);
@@ -103,7 +121,7 @@ export function VinForm({ onSuccess }: VinFormProps) {
           description: 'Vehicle information retrieved and added to history!',
         });
       } else {
-        throw new Error('No summary found in response');
+        throw new Error('No task_id or summary found in response');
       }
     } catch (error: any) {
       console.error('VIN lookup error:', error);
