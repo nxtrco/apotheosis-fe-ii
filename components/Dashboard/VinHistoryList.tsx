@@ -6,16 +6,23 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { vinApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, Car, Filter, Calendar, Clock, Eye, Download, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { VehicleSummaryModal } from './VehicleSummaryModal';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface VinRecord {
-  id: string;
+  _id: string;
   vin: string;
-  mileage: number;
+  make: string;
+  model: string;
+  year: string;
+  mileage: string;
   description: string;
   created_at: string;
+  status: 'completed' | 'pending' | 'failed';
 }
 
 interface VinHistoryListProps {
@@ -30,6 +37,7 @@ export function VinHistoryList({ refreshFlag, newestVinId }: VinHistoryListProps
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [limit] = useState(10);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<VinRecord | null>(null);
@@ -99,118 +107,205 @@ export function VinHistoryList({ refreshFlag, newestVinId }: VinHistoryListProps
       year: 'numeric',
       month: 'short',
       day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
+  const filteredRecords = records.filter(record => {
+    const matchesSearch = record.vin.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         record.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         record.model.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === 'all' || record.status === statusFilter
+    return matchesSearch && matchesStatus
+  });
+
+  const handleViewRecord = (record: VinRecord) => {
+    setSelectedRecord(record);
+    setModalOpen(true);
+  };
+
+  const handleDeleteRecord = (recordId: string) => {
+    setRecords(records.filter(r => r._id !== recordId));
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Badge className="bg-green-100 text-green-700">Completed</Badge>
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-700">Pending</Badge>
+      case 'failed':
+        return <Badge className="bg-red-100 text-red-700">Failed</Badge>
+      default:
+        return <Badge className="bg-slate-100 text-slate-700">Unknown</Badge>
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading VIN history...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <Card className="w-full">
+    <div className="space-y-6">
+      {/* Search and Filter */}
+      <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg">
         <CardHeader>
-          <CardTitle>VIN History</CardTitle>
-          <CardDescription>
-            Your recent vehicle history checks
+          <CardTitle className="text-xl font-bold text-slate-900">Search & Filter</CardTitle>
+          <CardDescription className="text-slate-600">
+            Find specific VIN records in your history
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSearch} className="mb-4">
-            <div className="flex space-x-2">
-              <Input
-                placeholder="Search by VIN..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1"
-              />
-              <Button type="submit" variant="secondary">
-                <Search className="h-4 w-4 mr-2" />
-                Search
-              </Button>
-            </div>
-          </form>
-          
-          {error && (
-            <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm mb-4">
-              {error}
-            </div>
-          )}
-          
-          <div className="space-y-4">
-            {isLoading ? (
-              // Loading skeletons
-              Array.from({ length: 3 }).map((_, index) => (
-                <div key={index} className="border rounded-md p-4 space-y-3">
-                  <div className="flex justify-between">
-                    <Skeleton className="h-5 w-1/3" />
-                    <Skeleton className="h-5 w-1/4" />
-                  </div>
-                  <Skeleton className="h-4 w-1/5" />
-                  <Skeleton className="h-24 w-full" />
-                </div>
-              ))
-            ) : records.length > 0 ? (
-              records.map((record, idx) => (
-                <div
-                  key={record.id}
-                  className={`border rounded-md p-4 hover:bg-muted/50 transition-colors cursor-pointer
-                    ${record.id === newestVinId && idx === 0 ? 'border-2 border-primary bg-yellow-50' : ''}`}
-                  onClick={() => {
-                    setSelectedRecord(record);
-                    setModalOpen(true);
-                  }}
-                  title="Click to view full summary"
-                >
-                  <div className="flex flex-col sm:flex-row sm:justify-between mb-2">
-                    <h3 className="font-semibold">VIN: {record.vin}</h3>
-                    <span className="text-sm text-muted-foreground">
-                      {formatDate(record.created_at)}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Mileage: {record.mileage.toLocaleString()} miles
-                  </p>
-                  <p className="text-sm line-clamp-3">{record.description}</p>
-                  <span className="text-xs text-primary underline">View Details</span>
-                  {record.id === newestVinId && idx === 0 && (
-                    <span className="ml-2 inline-block bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded">
-                      Newly added
-                    </span>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                No VIN records found. Try searching for a vehicle.
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="search" className="text-slate-700 font-medium">Search</Label>
+              <div className="relative">
+                <Input
+                  id="search"
+                  placeholder="Search by VIN, make, or model..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500 pl-10"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
               </div>
-            )}
-          </div>
-          
-          {!isLoading && records.length > 0 && (
-            <div className="flex justify-between items-center mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePreviousPage}
-                disabled={page === 1}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="status" className="text-slate-700 font-medium">Status</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900">
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-end">
+              <Button 
+                variant="outline" 
+                className="w-full border-slate-300 text-slate-700 hover:bg-slate-50"
+                onClick={() => {
+                  setSearchTerm('');
+                  setStatusFilter('all');
+                }}
               >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Previous
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                Page {page} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleNextPage}
-                disabled={page === totalPages}
-              >
-                Next
-                <ChevronRight className="h-4 w-4 ml-1" />
+                <Filter className="mr-2 h-4 w-4" />
+                Clear Filters
               </Button>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
-      {/* Modal for vehicle summary */}
+
+      {/* Results Summary */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-slate-900">
+          VIN Records ({filteredRecords.length})
+        </h3>
+        <Button 
+          variant="outline" 
+          className="border-slate-300 text-slate-700 hover:bg-slate-50"
+        >
+          <Download className="mr-2 h-4 w-4" />
+          Export All
+        </Button>
+      </div>
+
+      {/* Records List */}
+      <div className="space-y-4">
+        {filteredRecords.length === 0 ? (
+          <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg">
+            <CardContent className="py-12 text-center">
+              <Car className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-slate-900 mb-2">No records found</h3>
+              <p className="text-slate-600">
+                {searchTerm || statusFilter !== 'all' 
+                  ? 'Try adjusting your search or filter criteria.'
+                  : 'Start by looking up a VIN to see your history here.'
+                }
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredRecords.map((record) => (
+            <Card key={record._id} className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Car className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-slate-900">
+                          {record.year} {record.make} {record.model}
+                        </h4>
+                        <p className="text-sm text-slate-600 font-mono">{record.vin}</p>
+                      </div>
+                      {getStatusBadge(record.status)}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div className="flex items-center space-x-2 text-sm text-slate-600">
+                        <Clock className="h-4 w-4" />
+                        <span>Mileage: {record.mileage}</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm text-slate-600">
+                        <Calendar className="h-4 w-4" />
+                        <span>{formatDate(record.created_at)}</span>
+                      </div>
+                    </div>
+                    
+                    <p className="text-slate-700 line-clamp-2">{record.description}</p>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 ml-4">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleViewRecord(record)}
+                      className="border-slate-300 text-slate-700 hover:bg-slate-50"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-slate-300 text-slate-700 hover:bg-slate-50"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDeleteRecord(record._id)}
+                      className="border-red-300 text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+
+      {/* Vehicle Summary Modal */}
       {selectedRecord && (
         <VehicleSummaryModal
           open={modalOpen}
@@ -222,6 +317,6 @@ export function VinHistoryList({ refreshFlag, newestVinId }: VinHistoryListProps
           markdown={selectedRecord.description}
         />
       )}
-    </>
+    </div>
   );
 }

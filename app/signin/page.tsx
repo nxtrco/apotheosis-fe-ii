@@ -9,67 +9,34 @@ import { Input } from '@/components/ui/input';
 import { authApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function SignIn() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-  const [errors, setErrors] = useState<{
-    email?: string;
-    password?: string;
-    general?: string;
-  }>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
   const { login } = useAuth();
   const { toast } = useToast();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
-    if (errors[name as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors: typeof errors = {};
-    
-    // Email validation
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    }
-    
-    // Password validation
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) return;
-    
-    setIsSubmitting(true);
-    
+    setIsLoading(true);
+    setError('');
+
     try {
       const response = await authApi.signin({
-        email: formData.email,
-        password: formData.password,
+        email: email,
+        password: password,
       });
       
       // The response has a nested data structure
       const { data } = response.data;
-      const { access_token, refresh_token, email } = data;
+      const { access_token, refresh_token, email: responseEmail } = data;
       
-      login(access_token, refresh_token, { email });
+      login(access_token, refresh_token, { email: responseEmail });
       
       toast({
         title: 'Success',
@@ -78,102 +45,118 @@ export default function SignIn() {
       
       // Use replace instead of push to prevent going back to signin page
       router.replace('/dashboard');
-    } catch (error: any) {
-      console.error('Signin error:', error);
+    } catch (err: any) {
+      console.error('Signin error:', err);
       
       // Handle specific error messages from backend
-      if (error.response?.data?.message) {
-        setErrors({ general: error.response.data.message });
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
       } else {
-        setErrors({ 
-          general: 'Invalid email or password. Please try again.' 
-        });
+        setError('An error occurred. Please try again.');
       }
       
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to sign in.',
+        description: err.response?.data?.message || 'Failed to sign in.',
         variant: 'destructive',
       });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-muted/50">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link href="/" className="inline-flex items-center justify-center">
-            <Car className="h-8 w-8 text-primary mr-2" />
-            <h1 className="text-2xl font-bold">Apotheosis</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center p-4">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-40 left-40 w-80 h-80 bg-slate-100 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+      </div>
+
+      <div className="relative z-10 w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center space-x-2">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-lg">D</span>
+            </div>
+            <span className="text-3xl font-bold text-slate-900">Dealerscript</span>
           </Link>
-          <h2 className="text-2xl font-semibold mt-6 mb-2">Welcome back</h2>
-          <p className="text-muted-foreground">
-            Sign in to your account
-          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 bg-card p-6 rounded-lg shadow-md">
-          {errors.general && (
-            <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">
-              {errors.general}
+        <Card className="bg-white/80 backdrop-blur-sm border border-slate-200 shadow-xl">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-3xl font-bold text-center text-slate-900">
+              Welcome back
+            </CardTitle>
+            <CardDescription className="text-center text-slate-600">
+              Sign in to your account to continue
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-slate-700 font-medium">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-slate-700 font-medium">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500"
+                  required
+                />
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-red-600 text-sm">{error}</p>
+                </div>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Signing in...' : 'Sign In'}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <p className="text-slate-600">
+                Don't have an account?{' '}
+                <Link href="/signup" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">
+                  Sign up
+                </Link>
+              </p>
             </div>
-          )}
 
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">
-              Email
-            </label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-              className={errors.email ? "border-destructive" : ""}
-            />
-            {errors.email && (
-              <p className="text-destructive text-xs mt-1">{errors.email}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
-              Password
-            </label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Your password"
-              className={errors.password ? "border-destructive" : ""}
-            />
-            {errors.password && (
-              <p className="text-destructive text-xs mt-1">{errors.password}</p>
-            )}
-          </div>
-
-          <Button 
-            type="submit" 
-            className="w-full mt-6" 
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Signing in...' : 'Sign in'}
-          </Button>
-
-          <div className="text-center mt-6">
-            <p className="text-sm text-muted-foreground">
-              Don't have an account?{' '}
-              <Link href="/signup" className="text-primary hover:underline">
-                Sign up
+            <div className="mt-6 text-center">
+              <Link href="/" className="text-slate-500 hover:text-slate-700 text-sm transition-colors">
+                ← Back to home
               </Link>
-            </p>
-          </div>
-        </form>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

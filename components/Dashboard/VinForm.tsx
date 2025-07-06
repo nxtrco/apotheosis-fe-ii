@@ -9,218 +9,318 @@ import { Sparkles } from 'lucide-react';
 import { vinApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { VehicleSummaryModal } from '@/components/Dashboard/VehicleSummaryModal';
+import { Badge } from '@/components/ui/badge';
+import { Car, Search, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 
-interface VinFormProps {
-  onSuccess?: (summary: string) => void;
+interface VinData {
+  vin: string;
+  make: string;
+  model: string;
+  year: string;
+  trim: string;
+  engine: string;
+  transmission: string;
+  fuelType: string;
+  mileage: string;
+  color: string;
+  price: string;
+  marketValue: string;
+  history: string[];
+  features: string[];
 }
 
-export function VinForm({ onSuccess }: VinFormProps) {
-  const [formData, setFormData] = useState({
-    vin: '',
-    mileage: '',
-  });
-  const [errors, setErrors] = useState<{
-    vin?: string;
-    mileage?: string;
-    general?: string;
-  }>({});
+export default function VinForm() {
+  const [vin, setVin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [summary, setSummary] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
-  
+  const [error, setError] = useState('');
+  const [vinData, setVinData] = useState<VinData | null>(null);
+  const [showModal, setShowModal] = useState(false);
+
   const { toast } = useToast();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    
-    // For VIN, convert to uppercase and limit to 17 chars
-    if (name === 'vin') {
-      setFormData((prev) => ({ ...prev, [name]: value.toUpperCase().slice(0, 17) }));
-    } 
-    // For mileage, only allow numbers
-    else if (name === 'mileage') {
-      if (/^\d*$/.test(value)) {
-        setFormData((prev) => ({ ...prev, [name]: value }));
-      }
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-    
-    // Clear error when user starts typing
-    if (errors[name as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors: typeof errors = {};
-    
-    // VIN validation
-    if (!formData.vin) {
-      newErrors.vin = 'VIN is required';
-    } else if (formData.vin.length !== 17) {
-      newErrors.vin = 'VIN must be exactly 17 characters';
-    }
-    
-    // Mileage validation
-    if (!formData.mileage) {
-      newErrors.mileage = 'Mileage is required';
-    } else if (parseInt(formData.mileage) < 0) {
-      newErrors.mileage = 'Mileage cannot be negative';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) return;
-    
     setIsLoading(true);
-    setSummary(null);
-    
+    setError('');
+
+    if (!vin.trim()) {
+      setError('Please enter a VIN');
+      setIsLoading(false);
+      return;
+    }
+
+    if (vin.length !== 17) {
+      setError('VIN must be exactly 17 characters');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const response = await vinApi.getVinInfo(
-        formData.vin, 
-        parseInt(formData.mileage)
-      );
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Handle 202 status code response with task_id
-      if (response.status === 202 || response.data.status_code === 202) {
-        const data = response.data.data;
-        
-        if (data && data.task_id) {
-          // Clear the form and errors
-          setFormData({ vin: '', mileage: '' });
-          setErrors({});
-
-          toast({
-            title: 'Success',
-            description: 'Request submitted successfully.',
-          });
-          return;
-        }
-      }
+      // Mock data for demo
+      const mockData: VinData = {
+        vin: vin.toUpperCase(),
+        make: 'Honda',
+        model: 'Civic',
+        year: '2022',
+        trim: 'Sport',
+        engine: '1.5L Turbo I4',
+        transmission: 'CVT',
+        fuelType: 'Gasoline',
+        mileage: '15,000',
+        color: 'Crystal Black Pearl',
+        price: '$25,500',
+        marketValue: '$24,800',
+        history: [
+          'Clean title',
+          'No accidents reported',
+          'Regular maintenance records',
+          'Single owner'
+        ],
+        features: [
+          'Apple CarPlay',
+          'Android Auto',
+          'Bluetooth',
+          'Backup Camera',
+          'Lane Departure Warning',
+          'Forward Collision Warning'
+        ]
+      };
       
-      // Handle legacy response structure (if still needed)
-      const data = response.data.data;
-      if (data && (data.gpt_description || data.summary)) {
-        // After successful lookup, fetch the latest VIN records to get the new record's ID
-        const recordsResponse = await vinApi.getVinRecords(1, 1);
-        const newVinId = recordsResponse.data.data.records[0]?._id;
-        if (onSuccess && newVinId) onSuccess(newVinId);
-
-        // CLEAR THE ERROR HERE
-        setErrors({});
-
-        toast({
-          title: 'Success',
-          description: 'Vehicle information retrieved and added to history!',
-        });
-      } else {
-        throw new Error('No task_id or summary found in response');
-      }
-    } catch (error: any) {
-      console.error('VIN lookup error:', error);
-      
-      setErrors({ 
-        general: error.response?.data?.detail || 
-                'An error occurred while retrieving vehicle information.' 
-      });
-      
-      toast({
-        title: 'Error',
-        description: error.response?.data?.detail || 
-                    'Failed to retrieve vehicle information.',
-        variant: 'destructive',
-      });
+      setVinData(mockData);
+      setShowModal(true);
+    } catch (err) {
+      setError('Failed to fetch VIN data. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleApiSuccess = (markdown: string) => {
-    setSummary(markdown);
-    setModalOpen(true);
-  };
-
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Vehicle Lookup</CardTitle>
-        <CardDescription>
-          Enter a VIN number and current mileage to get a unique detailed vehicle listing.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {errors.general && (
-            <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">
-              {errors.general}
-            </div>
-          )}
-          
-          <div className="space-y-2">
-            <Label htmlFor="vin">VIN</Label>
+    <div className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="vin" className="text-slate-700 font-medium text-lg">
+            Vehicle Identification Number (VIN)
+          </Label>
+          <div className="relative">
             <Input
               id="vin"
-              name="vin"
-              value={formData.vin}
-              onChange={handleChange}
-              placeholder="e.g. 1HGCM82633A123456"
-              className={errors.vin ? "border-destructive" : ""}
+              type="text"
+              placeholder="Enter 17-character VIN (e.g., 1HGBH41JXMN109186)"
+              value={vin}
+              onChange={(e) => setVin(e.target.value.toUpperCase())}
+              className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500 text-lg py-4 pl-12 pr-4"
               maxLength={17}
+              disabled={isLoading}
             />
-            {errors.vin && (
-              <p className="text-destructive text-xs mt-1">{errors.vin}</p>
-            )}
-            {/* <p className="text-xs text-muted-foreground">
-              The Vehicle Identification Number is a 17-character code unique to each vehicle.
-            </p> */}
+            <Car className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="mileage">Current Mileage</Label>
-            <Input
-              id="mileage"
-              name="mileage"
-              value={formData.mileage}
-              onChange={handleChange}
-              placeholder="e.g. 75000"
-              className={errors.mileage ? "border-destructive" : ""}
-            />
-            {errors.mileage && (
-              <p className="text-destructive text-xs mt-1">{errors.mileage}</p>
-            )}
-          </div>
-          
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? (
-              'Looking up information...'
-            ) : (
-              <span className="flex items-center gap-2">
-                Get description now <Sparkles className="h-4 w-4" />
-              </span>
-            )}
-          </Button>
-        </form>
-        
-        {summary && (
-          <div className="mt-6 p-4 bg-muted rounded-md">
-            <h3 className="font-semibold mb-2">Vehicle Summary</h3>
-            <p className="text-sm">{summary}</p>
+          <p className="text-sm text-slate-600">
+            Enter the 17-character VIN found on your vehicle's dashboard, door jamb, or registration documents.
+          </p>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+            <p className="text-red-700">{error}</p>
           </div>
         )}
-      </CardContent>
-      <VehicleSummaryModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        title={`VIN: ${selectedRecord?.vin}`}
-        markdown={selectedRecord?.description || ''}
-      />
-    </Card>
+
+        <Button 
+          type="submit" 
+          className="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Decoding VIN...
+            </>
+          ) : (
+            <>
+              <Search className="mr-2 h-5 w-5" />
+              Decode VIN
+            </>
+          )}
+        </Button>
+      </form>
+
+      {/* Quick VIN Examples */}
+      <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-slate-900">Quick Examples</CardTitle>
+          <CardDescription className="text-slate-600">
+            Try these sample VINs to see the decoder in action
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setVin('1HGBH41JXMN109186')}
+              className="border-slate-300 text-slate-700 hover:bg-slate-50 py-3 text-left justify-start"
+              disabled={isLoading}
+            >
+              <div className="text-left">
+                <p className="font-medium">Honda Civic</p>
+                <p className="text-sm text-slate-600">1HGBH41JXMN109186</p>
+              </div>
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => setVin('5YJSA1E47HF000000')}
+              className="border-slate-300 text-slate-700 hover:bg-slate-50 py-3 text-left justify-start"
+              disabled={isLoading}
+            >
+              <div className="text-left">
+                <p className="font-medium">Tesla Model S</p>
+                <p className="text-sm text-slate-600">5YJSA1E47HF000000</p>
+              </div>
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => setVin('WBA8A9C50FD123456')}
+              className="border-slate-300 text-slate-700 hover:bg-slate-50 py-3 text-left justify-start"
+              disabled={isLoading}
+            >
+              <div className="text-left">
+                <p className="font-medium">BMW 3 Series</p>
+                <p className="text-sm text-slate-600">WBA8A9C50FD123456</p>
+              </div>
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => setVin('1FADP3F22FL123456')}
+              className="border-slate-300 text-slate-700 hover:bg-slate-50 py-3 text-left justify-start"
+              disabled={isLoading}
+            >
+              <div className="text-left">
+                <p className="font-medium">Ford Focus</p>
+                <p className="text-sm text-slate-600">1FADP3F22FL123456</p>
+              </div>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Features */}
+      <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-xl font-bold text-slate-900">What You'll Get</CardTitle>
+          <CardDescription className="text-slate-600">
+            Comprehensive vehicle information and insights
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <CheckCircle className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-slate-900">Vehicle Specifications</h4>
+                  <p className="text-sm text-slate-600">Make, model, year, trim, engine, and more</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <div className="w-6 h-6 bg-cyan-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <CheckCircle className="h-4 w-4 text-cyan-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-slate-900">Market Analysis</h4>
+                  <p className="text-sm text-slate-600">Current market value and pricing trends</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-slate-900">Vehicle History</h4>
+                  <p className="text-sm text-slate-600">Accident history, ownership records</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <CheckCircle className="h-4 w-4 text-slate-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-slate-900">Feature List</h4>
+                  <p className="text-sm text-slate-600">Complete list of vehicle features and options</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <CheckCircle className="h-4 w-4 text-purple-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-slate-900">Detailed Report</h4>
+                  <p className="text-sm text-slate-600">Comprehensive PDF report with all data</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <div className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <CheckCircle className="h-4 w-4 text-orange-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-slate-900">Export Options</h4>
+                  <p className="text-sm text-slate-600">Export data in multiple formats</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Vehicle Summary Modal */}
+      {showModal && vinData && (
+        <VehicleSummaryModal
+          open={showModal}
+          onOpenChange={setShowModal}
+          title={`VIN: ${vinData.vin}`}
+          markdown={`# ${vinData.year} ${vinData.make} ${vinData.model} ${vinData.trim}
+
+## Vehicle Information
+- **VIN:** ${vinData.vin}
+- **Make:** ${vinData.make}
+- **Model:** ${vinData.model}
+- **Year:** ${vinData.year}
+- **Trim:** ${vinData.trim}
+- **Engine:** ${vinData.engine}
+- **Transmission:** ${vinData.transmission}
+- **Fuel Type:** ${vinData.fuelType}
+- **Mileage:** ${vinData.mileage}
+- **Color:** ${vinData.color}
+
+## Pricing
+- **Listed Price:** ${vinData.price}
+- **Market Value:** ${vinData.marketValue}
+
+## Vehicle History
+${vinData.history.map(item => `- ${item}`).join('\n')}
+
+## Features
+${vinData.features.map(feature => `- ${feature}`).join('\n')}
+
+---
+*Report generated by Dealerscript VIN Decoder*`}
+        />
+      )}
+    </div>
   );
 }

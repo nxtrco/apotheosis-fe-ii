@@ -101,4 +101,33 @@ export const adminApi = {
   },
 };
 
+export const settingsApi = {
+  updateAccount: (data: {
+    username?: string;
+    email?: string;
+    currentPassword?: string;
+    newPassword?: string;
+    confirmPassword?: string;
+  }) => {
+    return api.put('/user/account', data);
+  },
+  updateDealership: (data: {
+    dealershipName?: string;
+    dealershipAddress?: string;
+    dealershipPhone?: string;
+    dealershipSlogan?: string;
+    dealershipMetadata?: string;
+  }) => {
+    return api.put('/settings/dealership', data);
+  },
+  updateSystem: (data: {
+    characterLimit?: number;
+  }) => {
+    return api.put('/settings/system', data);
+  },
+  getAccount: () => api.get('/user/account'),
+  getDealership: () => api.get('/settings/dealership'),
+  getSystem: () => api.get('/settings/system'),
+};
+
 export default api;

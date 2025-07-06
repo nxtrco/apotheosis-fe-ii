@@ -1,0 +1,72 @@
+Settings API cURL Commands
+============================
+
+1. Account Settings
+-------------------
+curl -X PUT http://localhost:8000/api/user/account \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "username": "john_doe",
+    "email": "john.doe@example.com",
+    "currentPassword": "current123",
+    "newPassword": "newPassword456",
+    "confirmPassword": "newPassword456"
+  }'
+
+
+2. Dealership Information
+-------------------------
+curl -X PUT http://localhost:8000/api/settings/dealership \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "dealershipName": "Premium Auto Sales",
+    "dealershipAddress": "123 Main Street, Anytown, ST 12345",
+    "dealershipPhone": "(555) 123-4567",
+    "dealershipSlogan": "Your trusted partner in automotive excellence",
+    "dealershipMetadata": "Family-owned dealership since 1985. Specializing in luxury and certified pre-owned vehicles. Award-winning customer service."
+  }'
+
+
+3. System Settings
+------------------
+curl -X PUT http://localhost:8000/api/settings/system \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{
+    "characterLimit": 1500
+  }'
+
+
+Expected Success Response Format:
+---------------------------------
+{
+  "status_code": 200,
+  "message": "Settings updated successfully",
+  "data": {
+    "updated_fields": ["username", "email"],
+    "timestamp": "2024-01-15T10:30:00Z"
+  }
+}
+
+
+Expected Error Response Format:
+-------------------------------
+{
+  "status_code": 400,
+  "message": "Validation error",
+  "errors": {
+    "email": "Invalid email format",
+    "newPassword": "Password must be at least 8 characters"
+  }
+}
+
+
+Notes:
+------
+- Replace YOUR_JWT_TOKEN with actual JWT token
+- Adjust localhost:8000 to match your backend URL
+- All endpoints use PUT method for updates
+- Content-Type must be application/json
+- Authorization header required for authenticated routes 
