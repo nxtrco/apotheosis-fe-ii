@@ -3,7 +3,7 @@ import axios from 'axios';
 const local = 'http://localhost:8000/api';
 const prod = 'https://apotheosis-be.onrender.com/api'
 
-const API_URL = prod;  
+const API_URL = local;  
 
 const api = axios.create({
   baseURL: API_URL,

@@ -14,8 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    name: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -50,17 +49,29 @@ export default function SignUp() {
     }
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, accept any valid form data
-      if (formData.firstName && formData.lastName && formData.email && formData.password) {
-        router.push('/dashboard');
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        // account_status: 'active',
+      };
+      const response = await authApi.signup(payload);
+      if (response.data && response.data.status_code === 201) {
+        toast({
+          title: 'Success',
+          description: response.data.message || 'User created successfully',
+        });
+        router.push('/signin');
       } else {
-        setError('Please fill in all fields');
+        setError(response.data?.message || 'Signup failed.');
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'An error occurred. Please try again.');
+      toast({
+        title: 'Error',
+        description: err.response?.data?.message || 'Failed to sign up.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -97,38 +108,20 @@ export default function SignUp() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-slate-700 font-medium">
-                    First Name
-                  </Label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    placeholder="John"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500"
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-slate-700 font-medium">
-                    Last Name
-                  </Label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    placeholder="Doe"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500"
-                    required
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-slate-700 font-medium">
+                  Name
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  placeholder="Your Name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500"
+                  required
+                />
               </div>
 
               <div className="space-y-2">
