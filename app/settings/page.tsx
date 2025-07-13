@@ -239,21 +239,10 @@ export default function SettingsPage() {
                     <User className="h-5 w-5" />
                     <span>Profile</span>
                   </a>
-                  <a href="#security" className="flex items-center space-x-3 p-3 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-                    <Shield className="h-5 w-5" />
-                    <span>Security</span>
-                  </a>
-                  <a href="#notifications" className="flex items-center space-x-3 p-3 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-                    <Bell className="h-5 w-5" />
-                    <span>Notifications</span>
-                  </a>
-                  <a href="#privacy" className="flex items-center space-x-3 p-3 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-                    <Globe className="h-5 w-5" />
-                    <span>Privacy</span>
-                  </a>
                   <a href="#billing" className="flex items-center space-x-3 p-3 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
                     <CreditCard className="h-5 w-5" />
                     <span>Billing</span>
+                    <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 border border-yellow-200">Coming Soon</span>
                   </a>
                 </nav>
               </CardContent>

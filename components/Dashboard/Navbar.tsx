@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Car, LogOut, Menu, User, X, Bell, Shield } from 'lucide-react';
+import { Car, LogOut, Menu, User, X, Bell, Shield, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/lib/auth';
@@ -73,7 +73,7 @@ export function DashboardNavbar({ notificationCount, onNotificationClick }: Dash
                 <TooltipTrigger asChild>
                   <Link href="/settings" className="flex items-center space-x-2 hover:bg-slate-100 px-3 py-2 rounded-lg transition-all duration-300">
                     <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
-                      <User className="h-4 w-4 text-slate-600" />
+                      <SettingsIcon className="h-4 w-4 text-slate-600" />
                     </div>
                     <span className="text-sm text-slate-700 font-medium">{user?.email}</span>
                   </Link>
@@ -124,7 +124,7 @@ export function DashboardNavbar({ notificationCount, onNotificationClick }: Dash
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
-                        <User className="h-4 w-4 text-slate-600" />
+                        <SettingsIcon className="h-4 w-4 text-slate-600" />
                       </div>
                       <span className="text-sm text-slate-700 font-medium">{user?.email}</span>
                     </Link>
