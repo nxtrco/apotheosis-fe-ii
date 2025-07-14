@@ -81,7 +81,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link href="/dashboard">
               <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                Try Demo
+                Request demo
               </Button>
             </Link>
             <Link href="/signup">
@@ -170,9 +170,7 @@ export default function Home() {
           <div className="w-[900px] h-[350px] bg-gradient-to-r from-blue-200 via-cyan-100 to-green-100 rounded-full blur-3xl opacity-50"></div>
         </div>
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-cyan-600 to-green-600 text-center mb-8 drop-shadow-lg">
-            Why DealerScript?
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-8">Why DealerScript?</h2>
           <p className="text-xl md:text-2xl font-semibold text-slate-700 text-center mb-16 max-w-3xl mx-auto">
             Ditch the generic. DealerScript is built to make your inventory stand out, sell faster, and save you hours every week.
           </p>
@@ -234,9 +232,7 @@ export default function Home() {
       {/* FAQ Section */}
       <section className="relative z-10 py-20 px-6 bg-white/30 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-cyan-600 to-green-600 text-center mb-16 drop-shadow-lg">
-            DealerScript FAQ
-          </h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-8">DealerScript FAQ</h2>
           
           <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 shadow-lg">
             <Accordion type="single" collapsible className="w-full">
@@ -324,20 +320,67 @@ export default function Home() {
         </div>
       </section>
 
+      {/* About Section */}
+      <section className="relative z-10 py-20 px-6">
+        {/* Background Accent */}
+        <div className="absolute inset-0 flex justify-center items-center pointer-events-none -z-10">
+          <div className="w-[600px] h-[250px] bg-gradient-to-r from-blue-200 via-cyan-100 to-green-100 rounded-full blur-3xl opacity-60"></div>
+          <div className="absolute -bottom-20 right-0 w-80 h-80 bg-green-100 rounded-full blur-2xl opacity-40"></div>
+        </div>
+        <div className="max-w-3xl mx-auto relative">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-8">About DealerScript</h2>
+          <p className="text-xl text-slate-700 mb-8 text-center">
+            At DealerScript, we know that selling cars today means winning online first. Customers scroll past hundreds of listings — and generic, copy-paste descriptions just don’t cut it anymore. That’s why we built DealerScript: to help dealerships stand out with AI-powered, VIN-specific vehicle posts that engage, inform, and convert.
+          </p>
+          <p className="text-lg text-slate-700 mb-8">
+            Built by auto industry veterans and powered by advanced AI, DealerScript pulls data from your inventory, manufacturer window stickers, and optional equipment — transforming it into compelling, human-sounding posts that reflect your dealership’s unique voice. We don’t believe in cookie-cutter solutions. We believe your inventory deserves a story.
+          </p>
+          <div className="my-12">
+            <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 text-center">Our Mission</h3>
+            <p className="text-lg text-slate-700 text-center">
+              Help dealerships save time, differentiate their inventory, and connect with buyers through smarter, better vehicle descriptions.
+            </p>
+          </div>
+          <div className="my-12">
+            <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 text-center">Who We Serve</h3>
+            <ul className="text-lg text-slate-700 space-y-2 list-disc list-inside mx-auto max-w-xl">
+              <li>Franchise and independent dealerships</li>
+              <li>Dealer groups and multi-rooftop operations</li>
+              <li>BDCs and marketing managers</li>
+              <li>Anyone who wants to elevate their inventory posts and boost customer engagement</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="relative z-10 py-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-cyan-600 to-green-600 text-center mb-8 drop-shadow-lg">
-            Ready to get started? Request your demo today!
-          </h2>
-          <p className="text-xl text-slate-600 mb-12 max-w-2xl mx-auto">
-            Join thousands of professionals who trust Dealerscript for their vehicle data needs.
-          </p>
-          <Link href="/signup">
-            <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white px-12 py-4 text-xl font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-              Start Your Free Trial
-            </Button>
-          </Link>
+        {/* Background Accent */}
+        <div className="absolute inset-0 flex justify-center items-center pointer-events-none -z-10">
+          <div className="w-[500px] h-[200px] bg-gradient-to-r from-blue-200 via-cyan-100 to-green-100 rounded-full blur-3xl opacity-60"></div>
+          <div className="absolute -bottom-10 left-0 w-60 h-60 bg-pink-100 rounded-full blur-2xl opacity-40"></div>
+        </div>
+        <div className="max-w-2xl mx-auto relative">
+          <div className="bg-white/90 rounded-3xl shadow-2xl px-8 py-12 flex flex-col items-center">
+            {/* Rocket Icon */}
+            <div className="mb-6 animate-bounce-slow">
+              <svg className="w-16 h-16 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M24 4l6 12 13 2-9.5 9.3 2.2 13-11.7-6.2-11.7 6.2 2.2-13L5 18l13-2z" />
+              </svg>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
+              Ready to get started? <span role="img" aria-label="rocket">🚀</span> Request your demo today!
+            </h2>
+            <p className="text-lg text-slate-600 mb-8 text-center">
+              Let’s make your inventory stand out!
+            </p>
+            <Link href="/signup">
+              <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white px-12 py-4 text-xl font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 animate-bounce-on-hover">
+                Start Your Free Trial
+              </Button>
+            </Link>
+            <p className="text-base text-slate-500 mt-6">Join thousands of professionals who trust Dealerscript for their vehicle data needs.</p>
+          </div>
         </div>
       </section>
 

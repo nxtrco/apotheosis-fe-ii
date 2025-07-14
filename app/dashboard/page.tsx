@@ -192,7 +192,7 @@ export default function Dashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <VinForm />
+                <VinForm onDecodeSuccess={() => { setActiveTab('history'); setRefreshFlag(f => !f); }} />
               </CardContent>
             </Card>
           </TabsContent>

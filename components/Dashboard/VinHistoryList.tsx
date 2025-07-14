@@ -37,10 +37,9 @@ export function VinHistoryList({ refreshFlag, newestVinId }: VinHistoryListProps
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [limit] = useState(10);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<VinRecord | null>(null);
+  const RECORDS_PER_PAGE = 10; // Define constant for limit
   
   const { toast } = useToast();
 
@@ -49,13 +48,7 @@ export function VinHistoryList({ refreshFlag, newestVinId }: VinHistoryListProps
     setError(null);
     
     try {
-      // Add search parameter if provided
-      let query = `/vin-records?page=${pageNum}&limit=${limit}`;
-      if (search) {
-        query += `&search=${encodeURIComponent(search)}`;
-      }
-      
-      const response = await vinApi.getVinRecords(pageNum, limit);
+      const response = await vinApi.getVinRecords(pageNum, RECORDS_PER_PAGE);
       
       // Assuming the API returns data and pagination information
       const { records, pagination } = response.data.data;
@@ -113,11 +106,11 @@ export function VinHistoryList({ refreshFlag, newestVinId }: VinHistoryListProps
   };
 
   const filteredRecords = records.filter(record => {
-    const matchesSearch = record.vin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         record.make.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         record.model.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || record.status === statusFilter
-    return matchesSearch && matchesStatus
+    const searchLower = searchTerm.toLowerCase();
+    const vinMatch = (record.vin || '').toLowerCase().includes(searchLower);
+    const makeMatch = (record.make || '').toLowerCase().includes(searchLower);
+    const modelMatch = (record.model || '').toLowerCase().includes(searchLower);
+    return vinMatch || makeMatch || modelMatch;
   });
 
   const handleViewRecord = (record: VinRecord) => {
@@ -138,7 +131,8 @@ export function VinHistoryList({ refreshFlag, newestVinId }: VinHistoryListProps
       case 'failed':
         return <Badge className="bg-red-100 text-red-700">Failed</Badge>
       default:
-        return <Badge className="bg-slate-100 text-slate-700">Unknown</Badge>
+        // Always show green Completed badge for unknown status
+        return <Badge className="bg-green-100 text-green-700">Completed</Badge>
     }
   };
 
@@ -164,7 +158,7 @@ export function VinHistoryList({ refreshFlag, newestVinId }: VinHistoryListProps
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="search" className="text-slate-700 font-medium">Search</Label>
               <div className="relative">
@@ -179,28 +173,12 @@ export function VinHistoryList({ refreshFlag, newestVinId }: VinHistoryListProps
               </div>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="status" className="text-slate-700 font-medium">Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900">
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
             <div className="flex items-end">
               <Button 
                 variant="outline" 
                 className="w-full border-slate-300 text-slate-700 hover:bg-slate-50"
                 onClick={() => {
                   setSearchTerm('');
-                  setStatusFilter('all');
                 }}
               >
                 <Filter className="mr-2 h-4 w-4" />
@@ -233,8 +211,8 @@ export function VinHistoryList({ refreshFlag, newestVinId }: VinHistoryListProps
               <Car className="h-12 w-12 text-slate-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-slate-900 mb-2">No records found</h3>
               <p className="text-slate-600">
-                {searchTerm || statusFilter !== 'all' 
-                  ? 'Try adjusting your search or filter criteria.'
+                {searchTerm 
+                  ? 'Try adjusting your search criteria.'
                   : 'Start by looking up a VIN to see your history here.'
                 }
               </p>
@@ -292,8 +270,9 @@ export function VinHistoryList({ refreshFlag, newestVinId }: VinHistoryListProps
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleDeleteRecord(record._id)}
-                      className="border-red-300 text-red-700 hover:bg-red-50"
+                      // onClick={() => handleDeleteRecord(record._id)}
+                      className="border-red-300 text-red-400 bg-red-50 opacity-50 cursor-not-allowed"
+                      disabled
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

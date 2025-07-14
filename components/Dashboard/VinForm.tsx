@@ -29,12 +29,18 @@ interface VinData {
   features: string[];
 }
 
-export default function VinForm() {
+// Add prop for callback
+interface VinFormProps {
+  onDecodeSuccess?: () => void;
+}
+
+export default function VinForm({ onDecodeSuccess }: VinFormProps) {
   const [vin, setVin] = useState('');
+  const [mileage, setMileage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [vinData, setVinData] = useState<VinData | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  // Remove showModal, vinData, and VehicleSummaryModal logic
 
   const { toast } = useToast();
 
@@ -55,44 +61,33 @@ export default function VinForm() {
       return;
     }
 
+    if (!mileage.trim()) {
+      setError('Please enter a mileage');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Make the actual API call
+      await vinApi.getVinInfo(vin, parseInt(mileage));
       
-      // Mock data for demo
-      const mockData: VinData = {
-        vin: vin.toUpperCase(),
-        make: 'Honda',
-        model: 'Civic',
-        year: '2022',
-        trim: 'Sport',
-        engine: '1.5L Turbo I4',
-        transmission: 'CVT',
-        fuelType: 'Gasoline',
-        mileage: '15,000',
-        color: 'Crystal Black Pearl',
-        price: '$25,500',
-        marketValue: '$24,800',
-        history: [
-          'Clean title',
-          'No accidents reported',
-          'Regular maintenance records',
-          'Single owner'
-        ],
-        features: [
-          'Apple CarPlay',
-          'Android Auto',
-          'Bluetooth',
-          'Backup Camera',
-          'Lane Departure Warning',
-          'Forward Collision Warning'
-        ]
-      };
+      // Show success toast
+      toast({
+        title: 'Success',
+        description: 'VIN decoded successfully.',
+      });
       
-      setVinData(mockData);
-      setShowModal(true);
-    } catch (err) {
-      setError('Failed to fetch VIN data. Please try again.');
+      // On success, call the callback
+      if (onDecodeSuccess) onDecodeSuccess();
+    } catch (err: any) {
+      console.error('Failed to decode VIN:', err);
+      setError(err.response?.data?.message || 'Failed to fetch VIN data. Please try again.');
+      
+      toast({
+        title: 'Error',
+        description: 'Failed to decode VIN. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -101,27 +96,46 @@ export default function VinForm() {
   return (
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="vin" className="text-slate-700 font-medium text-lg">
-            Vehicle Identification Number (VIN)
-          </Label>
-          <div className="relative">
-            <Input
-              id="vin"
-              type="text"
-              placeholder="Enter 17-character VIN (e.g., 1HGBH41JXMN109186)"
-              value={vin}
-              onChange={(e) => setVin(e.target.value.toUpperCase())}
-              className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500 text-lg py-4 pl-12 pr-4"
-              maxLength={17}
-              disabled={isLoading}
-            />
-            <Car className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 space-y-2">
+            <Label htmlFor="vin" className="text-slate-700 font-medium text-lg">
+              Vehicle Identification Number (VIN)
+            </Label>
+            <div className="relative">
+              <Input
+                id="vin"
+                type="text"
+                placeholder="Enter 17-character VIN (e.g., 1HGBH41JXMN109186)"
+                value={vin}
+                onChange={(e) => setVin(e.target.value.toUpperCase())}
+                className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500 text-lg py-4 pl-12 pr-4"
+                maxLength={17}
+                disabled={isLoading}
+                required
+              />
+              <Car className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+            </div>
           </div>
-          <p className="text-sm text-slate-600">
-            Enter the 17-character VIN found on your vehicle's dashboard, door jamb, or registration documents.
-          </p>
+          <div className="flex-1 space-y-2">
+            <Label htmlFor="mileage" className="text-slate-700 font-medium text-lg">
+              Mileage
+            </Label>
+            <Input
+              id="mileage"
+              type="number"
+              placeholder="Enter mileage"
+              value={mileage}
+              onChange={(e) => setMileage(e.target.value)}
+              className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500 text-lg py-4 pl-4 pr-4"
+              min={0}
+              disabled={isLoading}
+              required
+            />
+          </div>
         </div>
+        <p className="text-sm text-slate-600">
+          Enter the 17-character VIN found on your vehicle's dashboard, door jamb, or registration documents, and the current mileage.
+        </p>
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-3">
@@ -288,39 +302,7 @@ export default function VinForm() {
       </Card>
 
       {/* Vehicle Summary Modal */}
-      {showModal && vinData && (
-        <VehicleSummaryModal
-          open={showModal}
-          onOpenChange={setShowModal}
-          title={`VIN: ${vinData.vin}`}
-          markdown={`# ${vinData.year} ${vinData.make} ${vinData.model} ${vinData.trim}
-
-## Vehicle Information
-- **VIN:** ${vinData.vin}
-- **Make:** ${vinData.make}
-- **Model:** ${vinData.model}
-- **Year:** ${vinData.year}
-- **Trim:** ${vinData.trim}
-- **Engine:** ${vinData.engine}
-- **Transmission:** ${vinData.transmission}
-- **Fuel Type:** ${vinData.fuelType}
-- **Mileage:** ${vinData.mileage}
-- **Color:** ${vinData.color}
-
-## Pricing
-- **Listed Price:** ${vinData.price}
-- **Market Value:** ${vinData.marketValue}
-
-## Vehicle History
-${vinData.history.map(item => `- ${item}`).join('\n')}
-
-## Features
-${vinData.features.map(feature => `- ${feature}`).join('\n')}
-
----
-*Report generated by Dealerscript VIN Decoder*`}
-        />
-      )}
+      {/* Remove VehicleSummaryModal usage */}
     </div>
   );
 }
