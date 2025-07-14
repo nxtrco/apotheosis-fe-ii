@@ -31,7 +31,7 @@ interface VinData {
 
 // Add prop for callback
 interface VinFormProps {
-  onDecodeSuccess?: () => void;
+  onDecodeSuccess?: (vin: string) => void;
 }
 
 export default function VinForm({ onDecodeSuccess }: VinFormProps) {
@@ -77,8 +77,8 @@ export default function VinForm({ onDecodeSuccess }: VinFormProps) {
         description: 'VIN decoded successfully.',
       });
       
-      // On success, call the callback
-      if (onDecodeSuccess) onDecodeSuccess();
+      // On success, call the callback with the VIN
+      if (onDecodeSuccess) onDecodeSuccess(vin);
     } catch (err: any) {
       console.error('Failed to decode VIN:', err);
       setError(err.response?.data?.message || 'Failed to fetch VIN data. Please try again.');
@@ -162,67 +162,6 @@ export default function VinForm({ onDecodeSuccess }: VinFormProps) {
           )}
         </Button>
       </form>
-
-      {/* Quick VIN Examples */}
-      <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-slate-900">Quick Examples</CardTitle>
-          <CardDescription className="text-slate-600">
-            Try these sample VINs to see the decoder in action
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button
-              variant="outline"
-              onClick={() => setVin('1HGBH41JXMN109186')}
-              className="border-slate-300 text-slate-700 hover:bg-slate-50 py-3 text-left justify-start"
-              disabled={isLoading}
-            >
-              <div className="text-left">
-                <p className="font-medium">Honda Civic</p>
-                <p className="text-sm text-slate-600">1HGBH41JXMN109186</p>
-              </div>
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={() => setVin('5YJSA1E47HF000000')}
-              className="border-slate-300 text-slate-700 hover:bg-slate-50 py-3 text-left justify-start"
-              disabled={isLoading}
-            >
-              <div className="text-left">
-                <p className="font-medium">Tesla Model S</p>
-                <p className="text-sm text-slate-600">5YJSA1E47HF000000</p>
-              </div>
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={() => setVin('WBA8A9C50FD123456')}
-              className="border-slate-300 text-slate-700 hover:bg-slate-50 py-3 text-left justify-start"
-              disabled={isLoading}
-            >
-              <div className="text-left">
-                <p className="font-medium">BMW 3 Series</p>
-                <p className="text-sm text-slate-600">WBA8A9C50FD123456</p>
-              </div>
-            </Button>
-            
-            <Button
-              variant="outline"
-              onClick={() => setVin('1FADP3F22FL123456')}
-              className="border-slate-300 text-slate-700 hover:bg-slate-50 py-3 text-left justify-start"
-              disabled={isLoading}
-            >
-              <div className="text-left">
-                <p className="font-medium">Ford Focus</p>
-                <p className="text-sm text-slate-600">1FADP3F22FL123456</p>
-              </div>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Features */}
       <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg">

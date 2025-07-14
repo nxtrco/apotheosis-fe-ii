@@ -58,8 +58,8 @@ export default function Home() {
               <span className="block">AI-Powered</span>
               <span className="block bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-800 bg-clip-text text-transparent">
                 Vehicle Descriptions
-              </span>
-            </h1>
+            </span>
+          </h1>
             <div className="flex items-center justify-center mt-4">
               <span className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-slate-700 to-slate-500 bg-clip-text text-transparent">
                 That Sell
@@ -90,8 +90,8 @@ export default function Home() {
               </Button>
             </Link>
           </div>
-                  </div>
-        </main>
+        </div>
+      </main>
 
       {/* Example Section */}
       <section className="relative z-10 py-20 px-6 overflow-visible">
@@ -110,7 +110,7 @@ export default function Home() {
                 <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3 animate-bounce">
                   <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                </svg>
                 </div>
                 <h3 className="text-2xl font-extrabold text-red-800 tracking-tight">Before <span className='text-base font-bold'>(Generic)</span></h3>
               </div>
@@ -118,7 +118,7 @@ export default function Home() {
                 2023 GMC Sierra 1500 Denali, 4WD, leather seats, sunroof, adaptive cruise.
               </p>
             </div>
-
+            
             {/* Animated Arrow */}
             <div className="hidden md:flex flex-col items-center mx-2">
               <div className="relative">
@@ -370,15 +370,15 @@ export default function Home() {
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
               Ready to get started? <span role="img" aria-label="rocket">🚀</span> Request your demo today!
-            </h2>
+          </h2>
             <p className="text-lg text-slate-600 mb-8 text-center">
               Let’s make your inventory stand out!
-            </p>
-            <Link href="/signup">
+          </p>
+          <Link href="/signup">
               <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white px-12 py-4 text-xl font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 animate-bounce-on-hover">
-                Start Your Free Trial
-              </Button>
-            </Link>
+              Start Your Free Trial
+            </Button>
+          </Link>
             <p className="text-base text-slate-500 mt-6">Join thousands of professionals who trust Dealerscript for their vehicle data needs.</p>
           </div>
         </div>

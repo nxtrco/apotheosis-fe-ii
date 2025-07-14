@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,12 +9,67 @@ import { BarChart, TrendingUp, Users, Car, Activity, Zap } from 'lucide-react';
 import { DashboardNavbar as Navbar } from '@/components/Dashboard/Navbar';
 import VinForm from '@/components/Dashboard/VinForm';
 import { VinHistoryList } from '@/components/Dashboard/VinHistoryList';
+import { vinApi } from '@/lib/api';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [notificationCount, setNotificationCount] = useState(0);
   const [refreshFlag, setRefreshFlag] = useState(false);
   const [newestVinId, setNewestVinId] = useState<string | null>(null);
+  const [totalVins, setTotalVins] = useState(0);
+  const [lastVinLookup, setLastVinLookup] = useState<{
+    vin: string;
+    timestamp: string;
+  } | null>(() => {
+    // Try to get last VIN from localStorage on component mount
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('lastVinLookup');
+      return saved ? JSON.parse(saved) : null;
+    }
+    return null;
+  });
+
+  // Fetch total VIN count when the page loads or refreshFlag changes
+  useEffect(() => {
+    const fetchTotalVins = async () => {
+      try {
+        const response = await vinApi.getVinRecords(1, 1); // Get just one record to get total count
+        const total = response.data.data.pagination?.total || 0;
+        setTotalVins(total);
+      } catch (error) {
+        console.error('Failed to fetch total VINs:', error);
+      }
+    };
+    fetchTotalVins();
+  }, [refreshFlag]);
+
+  // Update last VIN lookup when a new VIN is decoded
+  const handleVinDecodeSuccess = (vin: string) => {
+    const newLookup = {
+      vin,
+      timestamp: new Date().toISOString()
+    };
+    setLastVinLookup(newLookup);
+    localStorage.setItem('lastVinLookup', JSON.stringify(newLookup));
+    setActiveTab('history');
+    setRefreshFlag(f => !f);
+  };
+
+  // Format the timestamp to "X time ago"
+  const getTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const lookupTime = new Date(timestamp);
+    const diffInMinutes = Math.floor((now.getTime() - lookupTime.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+    if (diffInMinutes < 1440) {
+      const hours = Math.floor(diffInMinutes / 60);
+      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+    }
+    const days = Math.floor(diffInMinutes / 1440);
+    return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
@@ -38,57 +93,72 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Total VINs</CardTitle>
-              <Car className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">1,234</div>
-              <p className="text-xs text-slate-600">
-                +12% from last month
-              </p>
+        {/* Analytics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {/* Total VINs */}
+          <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <Car className="h-5 w-5 text-blue-600" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-slate-600">Total VINs</p>
+                <p className="text-2xl font-bold text-slate-900">{totalVins.toLocaleString()}</p>
+                <p className="text-sm text-slate-500">Lifetime decoded VINs</p>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Active Reports</CardTitle>
-              <BarChart className="h-4 w-4 text-cyan-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">89</div>
-              <p className="text-xs text-slate-600">
-                +5% from last week
-              </p>
+          {/* Active Reports - Coming Soon */}
+          <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg relative overflow-hidden">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center">
+                  <BarChart className="h-5 w-5 text-slate-600" />
+                </div>
+                <Badge variant="secondary" className="bg-slate-100 text-slate-600">Coming Soon</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-slate-600">Active Reports</p>
+                <p className="text-2xl font-bold text-slate-900">--</p>
+                <p className="text-sm text-slate-500">Feature in development</p>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Market Value</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">$2.4M</div>
-              <p className="text-xs text-slate-600">
-                +8% from last month
-              </p>
+          {/* Market Value - Coming Soon */}
+          <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg relative overflow-hidden">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center">
+                  <TrendingUp className="h-5 w-5 text-slate-600" />
+                </div>
+                <Badge variant="secondary" className="bg-slate-100 text-slate-600">Coming Soon</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-slate-600">Market Value</p>
+                <p className="text-2xl font-bold text-slate-900">--</p>
+                <p className="text-sm text-slate-500">Feature in development</p>
+              </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">API Calls</CardTitle>
-              <Zap className="h-4 w-4 text-slate-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-900">45.2K</div>
-              <p className="text-xs text-slate-600">
-                +23% from last week
-              </p>
+          {/* API Calls - Coming Soon */}
+          <Card className="bg-white/70 backdrop-blur-sm border border-slate-200 shadow-lg relative overflow-hidden">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center">
+                  <Activity className="h-5 w-5 text-slate-600" />
+                </div>
+                <Badge variant="secondary" className="bg-slate-100 text-slate-600">Coming Soon</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-slate-600">API Calls</p>
+                <p className="text-2xl font-bold text-slate-900">--</p>
+                <p className="text-sm text-slate-500">Feature in development</p>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -113,43 +183,27 @@ export default function Dashboard() {
                 <CardHeader>
                   <CardTitle className="text-2xl font-bold text-slate-900">Recent Activity</CardTitle>
                   <CardDescription className="text-slate-600">
-                    Your latest VIN lookups and reports
+                    Your latest VIN lookups
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center space-x-4 p-3 bg-slate-50 rounded-lg">
-                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Car className="h-4 w-4 text-blue-600" />
+                    {lastVinLookup ? (
+                      <div className="flex items-center space-x-4 p-3 bg-slate-50 rounded-lg">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <Car className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-900">VIN Lookup: {lastVinLookup.vin}</p>
+                          <p className="text-xs text-slate-600">{getTimeAgo(lastVinLookup.timestamp)}</p>
+                        </div>
+                        <Badge variant="secondary" className="bg-green-100 text-green-700">Complete</Badge>
                       </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-slate-900">VIN Lookup: 1HGBH41JXMN109186</p>
-                        <p className="text-xs text-slate-600">2 minutes ago</p>
+                    ) : (
+                      <div className="flex items-center justify-center p-6 bg-slate-50 rounded-lg">
+                        <p className="text-slate-600">No recent VIN lookups</p>
                       </div>
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">Complete</Badge>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 p-3 bg-slate-50 rounded-lg">
-                      <div className="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center">
-                        <BarChart className="h-4 w-4 text-cyan-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-slate-900">Market Report Generated</p>
-                        <p className="text-xs text-slate-600">15 minutes ago</p>
-                      </div>
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-700">New</Badge>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 p-3 bg-slate-50 rounded-lg">
-                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center">
-                        <Activity className="h-4 w-4 text-slate-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-slate-900">API Usage Updated</p>
-                        <p className="text-xs text-slate-600">1 hour ago</p>
-                      </div>
-                      <Badge variant="secondary" className="bg-slate-100 text-slate-700">Info</Badge>
-                    </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -163,19 +217,12 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Button 
+                      className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                      onClick={() => setActiveTab('vin-lookup')}
+                    >
                       <Car className="mr-2 h-5 w-5" />
                       New VIN Lookup
-                    </Button>
-                    
-                    <Button variant="outline" className="w-full border-2 border-slate-300 text-slate-700 hover:bg-slate-50 py-3 text-lg font-semibold rounded-xl transition-all duration-300">
-                      <BarChart className="mr-2 h-5 w-5" />
-                      Generate Report
-                    </Button>
-                    
-                    <Button variant="outline" className="w-full border-2 border-slate-300 text-slate-700 hover:bg-slate-50 py-3 text-lg font-semibold rounded-xl transition-all duration-300">
-                      <TrendingUp className="mr-2 h-5 w-5" />
-                      View Analytics
                     </Button>
                   </div>
                 </CardContent>
@@ -192,7 +239,7 @@ export default function Dashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <VinForm onDecodeSuccess={() => { setActiveTab('history'); setRefreshFlag(f => !f); }} />
+                <VinForm onDecodeSuccess={(vin) => handleVinDecodeSuccess(vin)} />
               </CardContent>
             </Card>
           </TabsContent>
