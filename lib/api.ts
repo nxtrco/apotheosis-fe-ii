@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const local = 'http://localhost:8000/api';
-const prod = 'https://apotheosis-be.onrender.com/api'
+const prod = 'https://apotheosis-be-c9b5.onrender.com/api'
 
 const API_URL = prod;  
 
