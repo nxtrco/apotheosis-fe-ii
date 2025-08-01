@@ -96,7 +96,7 @@ export default function AdminSettings() {
 
   // Check if user is admin
   useEffect(() => {
-    if (user && user.email !== 'admin@admin.com') {
+    if (user && user.role !== 'admin') {
       router.push('/dashboard');
       toast({
         title: 'Access Denied',
@@ -187,7 +187,7 @@ export default function AdminSettings() {
   };
 
   // Don't render if not admin
-  if (!user || user.email !== 'admin@admin.com') {
+  if (!user || user.role !== 'admin') {
     return null;
   }
 

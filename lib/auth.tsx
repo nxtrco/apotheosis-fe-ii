@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 interface User {
   email: string;
   user_status?: 'active' | 'deactivated';
+  role?: 'admin' | 'user';
 }
 
 interface AuthContextType {

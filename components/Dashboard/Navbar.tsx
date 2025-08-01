@@ -52,7 +52,7 @@ export function DashboardNavbar({ notificationCount, onNotificationClick }: Dash
           </div>
           {/* Desktop navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            {user?.email === 'admin@admin.com' && (
+            {user?.role === 'admin' && (
               <Link href="/admin" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-all duration-300 flex items-center gap-1">
                 <Shield className="h-4 w-4" />
                 Admin
@@ -105,7 +105,7 @@ export function DashboardNavbar({ notificationCount, onNotificationClick }: Dash
               >
                 Dashboard
               </Link>
-              {user?.email === 'admin@admin.com' && (
+              {user?.role === 'admin' && (
                 <Link 
                   href="/admin" 
                   className="block py-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"

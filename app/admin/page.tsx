@@ -40,7 +40,7 @@ export default function Admin() {
 
   // Check if user is admin
   useEffect(() => {
-    if (user && user.email !== 'admin@admin.com') {
+    if (user && user.role !== 'admin') {
       router.push('/dashboard');
       toast({
         title: 'Access Denied',
@@ -53,7 +53,7 @@ export default function Admin() {
   // Fetch users from API
   useEffect(() => {
     const fetchUsers = async () => {
-      if (user?.email !== 'admin@admin.com') return;
+      if (user?.role !== 'admin') return;
       
       setIsLoading(true);
       try {
@@ -71,7 +71,7 @@ export default function Admin() {
       }
     };
 
-    if (user?.email === 'admin@admin.com') {
+    if (user?.role === 'admin') {
       fetchUsers();
     }
   }, [user, toast]);
@@ -114,10 +114,11 @@ export default function Admin() {
   // Debug: Log user object to see its structure
   console.log('Admin page - User object:', user);
   console.log('Admin page - User email:', user?.email);
-  console.log('Admin page - Is admin check:', user?.email === 'admin@admin.com');
+  console.log('Admin page - User role:', user?.role);
+  console.log('Admin page - Is admin check:', user?.role === 'admin');
 
   // Don't render if not admin
-  if (!user || user.email !== 'admin@admin.com') {
+  if (!user || user.role !== 'admin') {
     console.log('Admin page - Access denied, redirecting...');
     return null;
   }
@@ -137,7 +138,7 @@ export default function Admin() {
         {/* Debug Header */}
         <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-700">
-            <strong>Debug:</strong> User: {JSON.stringify(user)}, Email: {user?.email}, Is Admin: {user?.email === 'admin@admin.com' ? 'YES' : 'NO'}
+            <strong>Debug:</strong> User: {JSON.stringify(user)}, Email: {user?.email}, Is Admin: {user?.role === 'admin' ? 'YES' : 'NO'}
           </p>
         </div>
 
