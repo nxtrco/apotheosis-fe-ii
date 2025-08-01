@@ -34,9 +34,9 @@ export default function SignIn() {
       
       // The response has a nested data structure
       const { data } = response.data;
-      const { access_token, refresh_token, email: responseEmail } = data;
+      const { access_token, refresh_token, email: responseEmail, role } = data;
       
-      login(access_token, refresh_token, { email: responseEmail });
+      login(access_token, refresh_token, { email: responseEmail, role });
       
       toast({
         title: 'Success',
