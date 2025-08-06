@@ -4,7 +4,7 @@ const local = 'http://localhost:8000/api';
 
 const prod = 'https://apotheosis-be-c9b5.onrender.com/api'
 
-const API_URL = prod;  
+const API_URL = local;  
 
 const api = axios.create({
   baseURL: API_URL,
@@ -85,8 +85,8 @@ export const authApi = {
 };
 
 export const vinApi = {
-  getVinInfo: (vin: string, mileage: number) => {
-    return api.get(`/velocity-get?vin=${vin}&mileage=${mileage}`);
+  getVinInfo: (vin: string, mileage: number, vehicleCondition: 'new' | 'certified pre-owned' | 'pre-owned') => {
+    return api.get(`/velocity-get?vin=${vin}&mileage=${mileage}&vehicle_condition=${encodeURIComponent(vehicleCondition)}`);
   },
   getVinRecords: (page: number = 1, limit: number = 10) => {
     return api.get(`/vin-records?page=${page}&limit=${limit}`);

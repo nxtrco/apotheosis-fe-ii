@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sparkles } from 'lucide-react';
 import { vinApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -37,6 +38,7 @@ interface VinFormProps {
 export default function VinForm({ onDecodeSuccess }: VinFormProps) {
   const [vin, setVin] = useState('');
   const [mileage, setMileage] = useState('');
+  const [vehicleCondition, setVehicleCondition] = useState<'new' | 'certified pre-owned' | 'pre-owned' | ''>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [vinData, setVinData] = useState<VinData | null>(null);
@@ -67,9 +69,15 @@ export default function VinForm({ onDecodeSuccess }: VinFormProps) {
       return;
     }
 
+    if (!vehicleCondition) {
+      setError('Please select a vehicle condition');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       // Make the actual API call
-      await vinApi.getVinInfo(vin, parseInt(mileage));
+      await vinApi.getVinInfo(vin, parseInt(mileage), vehicleCondition);
       
       // Show success toast
       toast({
@@ -96,8 +104,8 @@ export default function VinForm({ onDecodeSuccess }: VinFormProps) {
   return (
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="space-y-2">
             <Label htmlFor="vin" className="text-slate-700 font-medium text-lg">
               Vehicle Identification Number (VIN)
             </Label>
@@ -105,7 +113,7 @@ export default function VinForm({ onDecodeSuccess }: VinFormProps) {
               <Input
                 id="vin"
                 type="text"
-                placeholder="Enter 17-character VIN (e.g., 1HGBH41JXMN109186)"
+                placeholder="Enter 17-character VIN"
                 value={vin}
                 onChange={(e) => setVin(e.target.value.toUpperCase())}
                 className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500 text-lg py-4 pl-12 pr-4"
@@ -116,7 +124,7 @@ export default function VinForm({ onDecodeSuccess }: VinFormProps) {
               <Car className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
             </div>
           </div>
-          <div className="flex-1 space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="mileage" className="text-slate-700 font-medium text-lg">
               Mileage
             </Label>
@@ -132,9 +140,24 @@ export default function VinForm({ onDecodeSuccess }: VinFormProps) {
               required
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="vehicleCondition" className="text-slate-700 font-medium text-lg">
+              Vehicle Condition *
+            </Label>
+            <Select value={vehicleCondition} onValueChange={(value: 'new' | 'certified pre-owned' | 'pre-owned') => setVehicleCondition(value)} disabled={isLoading}>
+              <SelectTrigger className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 text-lg py-4">
+                <SelectValue placeholder="Select condition" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="new">New</SelectItem>
+                <SelectItem value="certified pre-owned">Certified Pre-Owned</SelectItem>
+                <SelectItem value="pre-owned">Pre-Owned</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <p className="text-sm text-slate-600">
-          Enter the 17-character VIN found on your vehicle's dashboard, door jamb, or registration documents, and the current mileage.
+          Enter the 17-character VIN found on your vehicle's dashboard, door jamb, or registration documents, the current mileage, and select the vehicle condition.
         </p>
 
         {error && (
