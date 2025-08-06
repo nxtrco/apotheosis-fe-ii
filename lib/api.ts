@@ -4,7 +4,7 @@ const local = 'http://localhost:8000/api';
 
 const prod = 'https://apotheosis-be-c9b5.onrender.com/api'
 
-const API_URL = local;  
+const API_URL = prod;  
 
 const api = axios.create({
   baseURL: API_URL,
