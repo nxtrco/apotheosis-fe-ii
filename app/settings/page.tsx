@@ -20,6 +20,7 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [formData, setFormData] = useState({
     // Account Settings
     username: '',
@@ -97,6 +98,7 @@ export default function SettingsPage() {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors({}); // Clear previous errors
     
     try {
       const accountData = {
@@ -124,11 +126,29 @@ export default function SettingsPage() {
       
     } catch (error: any) {
       console.error('Failed to update account:', error);
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to update account settings.',
-        variant: 'destructive',
-      });
+      
+      // Handle 400 status code (validation errors)
+      if (error.response?.status === 400) {
+        // Extract errors if they exist in the nested structure
+        if (error.response?.data?.data?.errors) {
+          const apiErrors = error.response.data.data.errors;
+          setErrors(apiErrors);
+        }
+        
+        // Show the main error message in toast
+        toast({
+          title: 'Validation Error',
+          description: error.response.data.message || 'Please check your input and try again.',
+          variant: 'destructive',
+        });
+      } else {
+        // Handle other errors (500, network errors, etc.)
+        toast({
+          title: 'Error',
+          description: error.response?.data?.message || 'Failed to update account settings.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -273,8 +293,11 @@ export default function SettingsPage() {
                         value={formData.username}
                         onChange={handleChange}
                         placeholder="Enter username"
-                        className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500"
+                        className={`bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500 ${errors.username ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       />
+                      {errors.username && (
+                        <p className="text-red-600 text-sm mt-1">{errors.username}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email" className="text-slate-700 font-medium">Email Address</Label>
@@ -285,8 +308,11 @@ export default function SettingsPage() {
                         value={formData.email}
                         onChange={handleChange}
                         placeholder="Enter email address"
-                        className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500"
+                        className={`bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500 ${errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       />
+                      {errors.email && (
+                        <p className="text-red-600 text-sm mt-1">{errors.email}</p>
+                      )}
                     </div>
                   </div>
 
@@ -299,8 +325,11 @@ export default function SettingsPage() {
                       value={formData.currentPassword}
                       onChange={handleChange}
                       placeholder="Enter current password"
-                      className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500"
+                      className={`bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500 ${errors.currentPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                     />
+                    {errors.currentPassword && (
+                      <p className="text-red-600 text-sm mt-1">{errors.currentPassword}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -313,8 +342,11 @@ export default function SettingsPage() {
                         value={formData.newPassword}
                         onChange={handleChange}
                         placeholder="Enter new password"
-                        className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500"
+                        className={`bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500 ${errors.newPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       />
+                      {errors.newPassword && (
+                        <p className="text-red-600 text-sm mt-1">{errors.newPassword}</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="confirmPassword" className="text-slate-700 font-medium">Confirm New Password</Label>
@@ -325,10 +357,20 @@ export default function SettingsPage() {
                         value={formData.confirmPassword}
                         onChange={handleChange}
                         placeholder="Confirm new password"
-                        className="bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500"
+                        className={`bg-white border-slate-300 focus:border-blue-500 focus:ring-blue-500 text-slate-900 placeholder-slate-500 ${errors.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
                       />
+                      {errors.confirmPassword && (
+                        <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>
+                      )}
                     </div>
                   </div>
+
+                  {/* General error message */}
+                  {errors.general && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-red-600 text-sm">{errors.general}</p>
+                    </div>
+                  )}
 
                   <Button 
                     type="submit"
