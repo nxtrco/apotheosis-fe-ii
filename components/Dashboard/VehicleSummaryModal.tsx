@@ -16,8 +16,38 @@ interface VehicleSummaryModalProps {
 export function VehicleSummaryModal({ open, onOpenChange, title, markdown }: VehicleSummaryModalProps) {
   const [copied, setCopied] = useState(false);
 
+  const markdownToPlainText = (md: string): string => {
+    let text = md;
+    // Remove fenced code block markers but keep content
+    text = text.replace(/```[\s\S]*?```/g, (block) => block.replace(/```/g, ''));
+    // Inline code: `code` -> code
+    text = text.replace(/`([^`]*)`/g, '$1');
+    // Headings: remove leading # markers
+    text = text.replace(/^#{1,6}\s*/gm, '');
+    // Images: ![alt](url) -> alt
+    text = text.replace(/!\[([^\]]*)\]\([^\)]*\)/g, '$1');
+    // Links: [text](url) -> text
+    text = text.replace(/\[([^\]]+)\]\([^\)]*\)/g, '$1');
+    // Bold/italic: **strong** or *em* -> plain
+    text = text.replace(/(\*\*|__)(.*?)\1/g, '$2');
+    text = text.replace(/(\*|_)(.*?)\1/g, '$2');
+    // Blockquotes: > quote -> quote
+    text = text.replace(/^\s{0,3}>\s?/gm, '');
+    // Lists: remove bullet/number markers
+    text = text.replace(/^\s*([-+*])\s+/gm, '');
+    text = text.replace(/^\s*\d+\.\s+/gm, '');
+    // Horizontal rules
+    text = text.replace(/^\s*(-{3,}|\*{3,}|_{3,})\s*$/gm, '');
+    // Trim trailing spaces on lines
+    text = text.replace(/[ \t]+$/gm, '');
+    // Collapse excessive blank lines
+    text = text.replace(/\n{3,}/g, '\n\n');
+    return text.trim();
+  };
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(markdown);
+    const plain = markdownToPlainText(markdown);
+    navigator.clipboard.writeText(plain);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
